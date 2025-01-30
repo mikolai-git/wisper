@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog
+import csv
 from PIL import Image, ImageTk
 import os
 
@@ -30,6 +31,9 @@ class FramePlayer:
         self.btn_select3 = tk.Button(root, text="Select Folder 3", command=lambda: self.load_folder(2))
         self.btn_select3.pack()
         
+        self.btn_select_metrics = tk.Button(root, text="Select Metrics File", command=self.load_metrics_file)
+        self.btn_select_metrics.pack()
+        
         self.btn_play_pause = tk.Button(root, text="Play", command=self.toggle_playback)
         self.btn_play_pause.pack()
         
@@ -39,6 +43,7 @@ class FramePlayer:
         self.folders = [[], [], []]
         self.frame_indices = [0, 0, 0]
         self.playing = False
+        self.metrics_data = {}
         
         self.root.bind("<Configure>", self.resize_canvases)
     
@@ -50,6 +55,39 @@ class FramePlayer:
             if self.folders[index]:
                 self.slider.config(to=len(self.folders[index]) - 1)
             self.show_frame()
+    
+    def load_metrics_file(self):
+        # Open file dialog to select the metrics CSV file
+        metrics_file = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
+        if metrics_file:
+            self.metrics_data = self.load_metrics(metrics_file)
+            self.show_metrics()
+    
+    def load_metrics(self, metrics_file):
+        # Load the metrics from the CSV file into a dictionary
+        metrics_dict = {}
+        with open(metrics_file, newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            header = next(reader)  # Read the header
+            for row in reader:
+                metric = row[0]
+                values = list(map(float, row[1:]))
+                metrics_dict[metric] = values
+        return metrics_dict
+    
+    def show_metrics(self):
+        # Create a string displaying the metrics for the current frame
+        frame_index = self.frame_indices[0]
+        metrics_text = f"Frame {frame_index + 1}\n\n"
+        
+        for metric, values in self.metrics_data.items():
+            metrics_text += f"{metric}: {values[frame_index]:.2f}\n"
+        
+        if hasattr(self, 'metrics_label'):
+            self.metrics_label.config(text=metrics_text)
+        else:
+            self.metrics_label = tk.Label(self.frame, text=metrics_text, anchor="w", justify="left", font=("Helvetica", 10))
+            self.metrics_label.grid(row=1, column=2, sticky="nsew")
     
     def show_frame(self):
         canvases = [self.canvas1, self.canvas2, self.canvas3]
@@ -64,6 +102,7 @@ class FramePlayer:
                     canvases[i].create_image(width // 2, height // 2, anchor=tk.CENTER, image=photo)
                     canvases[i].photo = photo  # Keep reference
         self.slider.set(self.frame_indices[0])
+        self.show_metrics()  # Update metrics display when a frame is shown
     
     def toggle_playback(self):
         self.playing = not self.playing
@@ -91,6 +130,6 @@ class FramePlayer:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry("800x600")
+    root.geometry("1000x600")
     app = FramePlayer(root)
     root.mainloop()
