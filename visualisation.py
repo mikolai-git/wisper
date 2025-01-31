@@ -44,14 +44,25 @@ class FramePlayer:
         self.frame_indices = [0, 0, 0]
         self.playing = False
         self.metrics_data = {}
+        self.loaded_images = [[], [], []]  # Store preloaded images for fast display
         
         self.root.bind("<Configure>", self.resize_canvases)
+
+        # Fixed size for metrics container
+        self.metrics_frame = tk.Frame(self.frame, width=250, height=200)
+        self.metrics_frame.grid(row=1, column=2, sticky="nsew")
+        self.metrics_frame.grid_propagate(False)  # Prevent resizing based on content
+        
+        # Label for metrics display
+        self.metrics_label = tk.Label(self.metrics_frame, font=("Helvetica", 12), anchor="w", justify="left")
+        self.metrics_label.pack(fill=tk.BOTH, expand=True)
     
     def load_folder(self, index):
         folder_selected = filedialog.askdirectory()
         if folder_selected:
             self.folders[index] = sorted([os.path.join(folder_selected, f) for f in os.listdir(folder_selected) if f.endswith(('png', 'jpg', 'jpeg'))])
             self.frame_indices[index] = 0
+            self.loaded_images[index] = [Image.open(f) for f in self.folders[index]]  # Pre-load images
             if self.folders[index]:
                 self.slider.config(to=len(self.folders[index]) - 1)
             self.show_frame()
@@ -74,31 +85,33 @@ class FramePlayer:
                 values = list(map(float, row[1:]))
                 metrics_dict[metric] = values
         return metrics_dict
+
     
     def show_metrics(self):
         # Create a string displaying the metrics for the current frame
         frame_index = self.frame_indices[0]
         metrics_text = f"Frame {frame_index + 1}\n\n"
         
+        # Create a fixed-size container for metrics
         for metric, values in self.metrics_data.items():
-            metrics_text += f"{metric}: {values[frame_index]:.2f}\n"
+            value = f"{values[frame_index]:.2f}"
+            # Format the metric name aligned to the left and value to the right within a fixed width container
+            metrics_text += f"{metric:<30} : {value:>10}\n"  # Adjust widths as needed
         
-        if hasattr(self, 'metrics_label'):
-            self.metrics_label.config(text=metrics_text)
-        else:
-            self.metrics_label = tk.Label(self.frame, text=metrics_text, anchor="w", justify="left", font=("Helvetica", 10))
-            self.metrics_label.grid(row=1, column=2, sticky="nsew")
+        self.metrics_label.config(text=metrics_text)
     
     def show_frame(self):
         canvases = [self.canvas1, self.canvas2, self.canvas3]
         for i in range(3):
             if self.folders[i]:
-                img = Image.open(self.folders[i][self.frame_indices[i]])
+                # Get the image from pre-loaded list
+                img = self.loaded_images[i][self.frame_indices[i]]
                 width = canvases[i].winfo_width()
                 height = canvases[i].winfo_height()
                 if width > 0 and height > 0:
                     img.thumbnail((width, height), Image.Resampling.LANCZOS)
                     photo = ImageTk.PhotoImage(img)
+                    canvases[i].delete("all")  # Clear previous image
                     canvases[i].create_image(width // 2, height // 2, anchor=tk.CENTER, image=photo)
                     canvases[i].photo = photo  # Keep reference
         self.slider.set(self.frame_indices[0])
