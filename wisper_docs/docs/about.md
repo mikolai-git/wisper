@@ -95,6 +95,89 @@
         list: List of average brightness values for each sliding window of frames.
     """
 
+## Colour Processing
+
+    def compute_lab_metrics(image):
+    """
+    Converts an image to the CIELab colour space and computes chroma and Hasler & Süsstrunk colourfulness.
+
+    Parameters:
+        image (ndarray): The input image in BGR format.
+
+    Returns:
+        tuple: (avg_chroma, colorfulness), where:
+            - avg_chroma (float): Average chroma computed from a and b channels.
+            - colorfulness (float): Hasler & Süsstrunk colourfulness metric.
+    """
+
+#
+
+    def compute_metrics(image):
+    """
+    Computes multiple colour-related metrics for an image, including average hue, chroma, and colourfulness.
+
+    Parameters:
+        image (ndarray): The input image in BGR format.
+
+    Returns:
+        dict: Dictionary with keys 'average_hue', 'average_chroma', 'colorfulness'.
+    """
+
+#
+
+    def process_frames(folder_path):
+    """
+    Iterates through all frames in a directory and computes average chroma and colourfulness for each.
+
+    Parameters:
+        folder_path (str): Path to the directory containing frame images.
+
+    Returns:
+        OrderedDict: Dictionary containing lists of normalised 'average_chroma' and 'colorfulness' values.
+    """
+
+#
+
+    def compute_colourfulness(image):
+    """
+    Computes Hasler & Süsstrunk colourfulness from an image.
+
+    Parameters:
+        image (ndarray): The input image in BGR format.
+
+    Returns:
+        float: The colourfulness metric of the image.
+    """
+#
+
+    def normalize_colourfulness(colourfulness):
+    """
+    Normalises a list of colourfulness values to the [0, 1] range based on empirical bounds.
+
+    Parameters:
+        colourfulness (list of float): Raw colourfulness values.
+
+    Returns:
+        list of float: Normalised values.
+    """
+#
+
+    def process_colour(folder_path):
+    """
+    Main entry point for processing all colour-related metrics from a folder of frames.
+
+    Parameters:
+        folder_path (str): Path to the folder containing frame images.
+
+    Returns:
+        OrderedDict: Dictionary containing lists of chroma and colourfulness values for each frame.
+    """
+
+#
+
+
+
+
 ## Shot Detection
 
     def shot_prediction(video_path):
